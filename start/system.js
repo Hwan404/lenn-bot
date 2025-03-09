@@ -839,7 +839,7 @@ case 'pin': {
 
         let randomImage = result.data[Math.floor(Math.random() * result.data.length)];
 
-        let caption = `*Pinterest Result*\n*Judul:* ${randomImage.grid_title || "Tidak ada judul"}\n*Tanggal:* ${randomImage.created_at}\n*Link:* ${randomImage.pin}`;
+        let caption = `*Judul:* ${randomImage.grid_title || "Tidak ada judul"}\n*Tanggal:* ${randomImage.created_at}\n*Link:* ${randomImage.pin}`;
 
         client.sendMessage(m.chat, { 
             image: { url: randomImage.images_url },
