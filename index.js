@@ -130,7 +130,7 @@ async function clientstart() {
     
     if (usePairingCode && !client.authState.creds.registered) {
         const phoneNumber = await question('please enter your WhatsApp number, starting with 62:\n');
-        const code = await client.requestPairingCode(phoneNumber, global.pairing);
+        const code = await client.requestPairingCode(phoneNumber);
         console.log(`your pairing code: ${code}`);
     }
     
