@@ -32,6 +32,7 @@ const tebakBenderaSessions = {}; // Menyimpan sesi tebak bendera
 const activeGames = {}; // Menyimpan game aktif di setiap chat
 const chatCooldown = {}; // Menyimpan cooldown per user
 const tebakJktSessions = {}; // Menyimpan sesi tebakjkt
+let globalJoinCooldown = 0; // Menyimpan waktu terakhir command digunakan (global)
 
 module.exports = client = async (client, m, chatUpdate, store) => {
     try {
@@ -223,6 +224,7 @@ commands:
 
 > tools
  ๑ ${prefix}hd
+ ๑ ${prefix}quiziz
  
 > group
  ๑ ${prefix}tagall
@@ -249,7 +251,6 @@ commands:
  
 > other
  ๑ ${prefix}ping
- ๑ ${prefix}chat
 
 > owner
  ๑ ${prefix}csesi
@@ -492,6 +493,35 @@ let proses = await Upscale(media);
 client.sendMessage(m.chat, { image: proses, caption: 'BERHASIL HDR'}, { quoted: null})
 }
 break
+
+case "quiziz":
+ if (!text) return reply("Masukkan kode Quizizz!\nContoh: quiziz 32993496");
+ 
+ let apiUrl = `https://api.maelyn.tech/api/quizizz?pin=${text}&apikey=Mbv133tl1l`;
+ 
+ try {
+ let response = await fetch(apiUrl);
+ let data = await response.json();
+ 
+ if (data.status !== "Success") return reply("Gagal mengambil data Quizizz.");
+
+ let result = data.result;
+ if (!result.length) return reply("Tidak ada soal yang ditemukan.");
+ 
+ let message = `📚 *Quizizz (${q})*\n\n`;
+ 
+ for (let i = 0; i < result.length; i++) {
+ let soal = result[i].question.text;
+ let jawaban = result[i].answer.text;
+ message += `*Soal ${i + 1}:* ${soal}\n*Jawaban:* ${jawaban}\n\n`;
+ }
+ 
+ reply(message);
+ } catch (error) {
+ console.error(error);
+ reply("Terjadi kesalahan saat mengambil data Quizizz.");
+ }
+ break
 
 //group
             case 'tagall':{
@@ -1112,56 +1142,6 @@ case 'ping': {
     client.sendMessage(m.chat, {
         text: serverInfo
     },{ quoted:m})
-}
-break;
-
-case 'chat': {
-    if (m.isGroup) return reply(mess.private);
-    if (!text) return reply(`contoh: ${prefix + command} halo`);
-
-    let sender = m.sender;
-    let now = Date.now();
-
-    // Jika user bukan pemilik (tidak punya Access), cek cooldown
-    if (!Access) {
-        if (chatCooldown[sender] && now - chatCooldown[sender] < 1800000) { // 30 menit = 1800000 ms
-            let remainingTime = ((chatCooldown[sender] + 1800000 - now) / 60000).toFixed(1);
-            return reply(`Anda hanya bisa menggunakan perintah ini setiap 30 menit!\nSilakan coba lagi dalam *${remainingTime} menit*.`);
-        }
-    }
-
-    let userProfilePic;
-    try {
-        userProfilePic = await client.profilePictureUrl(m.sender, 'image');
-    } catch {
-        userProfilePic = "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png";
-    }
-
-    let timeWIB = new Date().toLocaleString("id-ID", { timeZone: "Asia/Jakarta" });
-
-    await new Promise(resolve => setTimeout(resolve, 1000)); // Delay 1 detik sebelum mengirim pesan
-
-    await client.sendMessage('120363382099978847@newsletter', {
-        text: text,
-        contextInfo: {
-            externalAdReply: {
-                title: pushname,
-                body: timeWIB,
-                thumbnailUrl: userProfilePic,
-                sourceUrl: '',
-                renderLargerThumbnail: false,
-            }
-        }
-    }, { quoted: m });
-
-    await new Promise(resolve => setTimeout(resolve, 1000)); // Delay 1 detik sebelum memberi notifikasi sukses
-
-    reply("Pesan berhasil dikirim!");
-
-    // Jika user bukan pemilik, atur cooldown
-    if (!Access) {
-        chatCooldown[sender] = now;
-    }
 }
 break;
 
